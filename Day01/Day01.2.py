@@ -1,19 +1,15 @@
+from itertools import cycle
 with open('input','r') as f: input = f.read() 
 
-changes = input.split(',')
+changes = cycle(int(x) for x in input.split(','))
 frequency = 0
 visited = set()
-i = 0
 
-while True:        
+for change in changes:
     visited.add(frequency)
-
-    change = changes[i]
-    frequency += int(change[1:]) * (-1 if change[0] == '-' else 1)
+    frequency += change
 
     if frequency in visited: 
         break
-
-    i = (i + 1) % len(changes)
 
 print frequency
