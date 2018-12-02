@@ -3,19 +3,9 @@ ids = input.split('\n')
 
 (twos, threes) = (0,0)
 
-def getDupes(id):
-    letters = {}
-    for c in id:
-        if letters.has_key(c): letters[c] += 1
-        else: letters[c] = 1
-    
-    return (
-        any(x == 2 for x in letters.values()),
-        any(x == 3 for x in letters.values())
-    )
-
 for id in ids:
-    (has_two, has_three) = getDupes(id)
-    (twos, threes) = (twos + has_two, threes + has_three)
+    counts = {char : id.count(char) for char in set(id)}
+    if any(x == 2 for x in counts.values()): twos += 1
+    if any(x == 3 for x in counts.values()): threes += 1  
 
 print twos * threes
