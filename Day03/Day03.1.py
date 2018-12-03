@@ -5,7 +5,7 @@ ex = re.compile(r'#(\d+) @ (\d+),(\d+): (\d+)x(\d+)')
 grid = {}
 
 for claim in input.split('\n'):
-    (id, x, y, width, height) = (map(int, ex.match(claim).groups()))
+    (id, x, y, width, height) = map(int, ex.match(claim).groups())
     for c in itertools.product(range(x, x + width), range(y, y + height)):
         grid[c] = grid.get(c, 0) + 1
 

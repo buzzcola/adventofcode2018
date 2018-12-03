@@ -6,7 +6,7 @@ grid = {}
 claim_coordinates = {}
 
 for claim in input.split('\n'):
-    (id, x, y, width, height) = (map(int, ex.match(claim).groups()))
+    (id, x, y, width, height) = map(int, ex.match(claim).groups())
     claim_coordinates[id] = list(itertools.product(range(x, x + width), range(y, y + height)))
     for c in claim_coordinates[id]:
         grid[c] = grid.get(c, 0) + 1
