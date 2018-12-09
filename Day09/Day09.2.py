@@ -25,7 +25,7 @@ while marble < marble_count:
         current_marble_node = go_backward(current_marble_node, 7)
         player_scores[current_player] += current_marble_node.data
         node_to_remove = current_marble_node        
-        current_marble_node = current_marble_node.next
+        current_marble_node = go_forward(current_marble_node, 1)
         marble_ring.remove(node_to_remove)
     else:
         sibling = go_forward(current_marble_node, 1)
