@@ -1,4 +1,3 @@
-from itertools import groupby
 from Shared import Cart, Orientation, print_track
 with open('input','r') as f: input = f.read()
 track = {}
