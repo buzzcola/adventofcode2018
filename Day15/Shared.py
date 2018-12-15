@@ -1,37 +1,10 @@
 from __future__ import print_function
-from anytree import AnyNode
+from anytree import AnyNode, RenderTree
 
-class Fighter:
+class Fighter(object):
     def __init__(self):
         self.hitpoints = 200
-        self.attack = 3
-
-    def take_turn(self):
-        # search for enemies
-        
-
-class BreadthFirstSearch:
-    def __init__(self, grid, start, goal):
-        self.grid = grid
-        self.start = start
-        self.goal = goal
-        self.visited = set()
-        self.enemy_nodes = []
-        self.search(self.start)
-
-    def search(self, coord):
-        node = AnyNode(location=coord)
-        adjacent = [(coord[0] + d[0], coord[1] + d[1]) for d in Direction.ALL]
-        new = [(x,y) for x,y in adjacent if (x,y) not in self.visited]
-        empty = [(x,y) for x,y in new if (x,y) not in self.grid]
-        enemies = [(x,y) for x,y in new if self.grid[(x,y)] == self.goal]
-        self.enemy_nodes += [AnyNode(location = (x,y), parent=node) for x,y in enemies]
-        self.visited.update([coord] + enemies)
-        if any(self.enemy_nodes):
-            return
-        for x in empty:
-            self.search(x)
-
+        self.attack_power = 3
 
 class Elf(Fighter):
     def __init__(self):
@@ -46,6 +19,23 @@ class Goblin(Fighter):
         self.enemy = 'E'
 
     def __str__(self): return 'G'
+
+def find_enemies(grid, start, goal):
+    start_node = AnyNode(location=start)
+    frontier = [start_node]
+    visited = set()
+    enemy_nodes = []
+    while any(frontier):
+        node = frontier.pop(0)
+        coord = node.location
+        adjacent = [(coord[0] + d[0], coord[1] + d[1]) for d in Direction.ALL]            
+        enemies = [(x,y) for x,y in adjacent if grid.get((x,y), None) == goal]
+        next_nodes = [AnyNode(location=(x,y), parent=node) for x,y in adjacent if (x,y) not in grid and (x,y) not in visited]
+        enemy_nodes += [AnyNode(location = (x,y), parent=node) for x,y in enemies]
+        visited.update([coord])
+        frontier += next_nodes
+    
+    return enemy_nodes
 
 class Direction:
     NORTH = (0,-1)
