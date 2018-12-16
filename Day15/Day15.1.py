@@ -1,4 +1,6 @@
-from Shared import Goblin, Elf, Fighter, print_grid, find_enemies
+from Shared import *
+
+debug = False
 
 with open('input','r') as f: input = f.read()
 (ELF, GOBLIN, WALL) = ['E','G','#']
@@ -11,35 +13,106 @@ for y, row in zip(range(len(rows)), rows):
         elif char == WALL: grid[(x,y)] = WALL
 
 round = 0
-while True:    
-    goblins_remain = any(type(x) is Goblin for x in grid.values())
-    elves_remain = any(type(x) is Elf for x in grid.values())
-    if not goblins_remain or not elves_remain:
-        break
-    
-    round += 1
-    fighters = [(coord,x) for coord,x in grid.items() if isinstance(x, Fighter)]
-    fighters.sort(key=lambda x:x[0]) # sort by coordinates to ensure reading order
-    for (location,fighter) in fighters:
-        enemy_nodes = find_enemies(grid, location, fighter.enemy)
-        if not any(enemy_nodes): continue
-        adjacent_enemies = [(x.location, grid[x.location]) for x in enemy_nodes if x.depth == 1]
+winner = None
 
+if debug: 
+    print 'Round %s' % round
+    print_grid(grid)
+    raw_input('[continue]')
+
+while True: # begin!
+        
+    fighters = [(coord,x) for coord,x in grid.items() if isinstance(x, Fighter)]
+    fighters.sort(key=lambda x:point_sorter(x[0])) # sort by coordinates every time to ensure reading order
+
+    for (location,fighter) in fighters:
+
+        if fighter.hitpoints <= 0:
+            continue # he dead     
+        
+        adjacent_enemies = get_adjacent(grid, location, fighter.enemy)
+        
         # move towards enemy
         if not any(adjacent_enemies):
-            target_distance = enemy_nodes.min(key=lambda x:x.depth)
-            targets = [x for x in enemy_nodes if x.depth == target_distance]
-            next_location = min(x.ancestors[x.depth - 1].location for x in targets)
+            enemy_locations = [x[0] for x in grid.items() if str(x[1]) == fighter.enemy]
+
+            # is it over?
+            if not any(enemy_locations):
+                winner = type(fighter)
+                round -= 1
+                break
+
+            # get all empty tiles adjacent to enemies
+            distinct_targets = set()
+            for enemy_location in enemy_locations:
+                distinct_targets.update(get_adjacent(grid, enemy_location, None))
+
+            # sort targets by distance. closer ones are likelier to be a short path.
+            targets = list(distinct_targets)
+            targets.sort(key=lambda x: manhattan_distance(location, x))
+
+            # try/get path to enemy adjacents
+            paths = []
+            shortest = None
+
+            for target in targets:
+                # if the manhattan distance is longer than our shortest path,
+                # you couldn't get there even with a straight shot, so don't bother.
+                if shortest and (manhattan_distance(location, target) > shortest):
+                    continue
+
+                path = find_path_to(grid, location, target, shortest)
+                if path: 
+                    paths.append(path)
+                    shortest = path.depth
+
+            # if no paths, end turn
+            if not any(paths): continue
+
+            # get shortest paths
+            min_length = min(paths, key=lambda x:x.depth).depth
+            paths = [x for x in paths if x.depth == min_length]
+
+            # sort by destination's reading order 
+            paths.sort(key=lambda x:point_sorter(x.location))
+
+            # move to first location in first path
+            next_location = paths[0].path[1].location
             del grid[location]
             grid[next_location] = fighter
-            enemy_nodes = find_enemies(grid, coord, fighter.enemy)
-            adjacent_enemies = [(x.location, grid[x.location]) for x in enemy_nodes if x.depth == 1]
+            location = next_location
+            adjacent_enemies = get_adjacent(grid, location, fighter.enemy)
         
         # attack!
         if any(adjacent_enemies):
-            adjacent_enemies.sort(key=lambda x:(x[1].hitpoints, x[0]))
-            victim = adjacent_enemies[0]
-            victim[1].hitpoints -= fighter.attack_power
-            if victim[1].hitpoints <= 0:
-                # kill!
-                del grid[victim[0]]
+            adjacent_enemies.sort(key=lambda x:(grid[x].hitpoints, point_sorter(x)))
+            victim_location = adjacent_enemies[0]
+            victim = grid[victim_location]
+            victim.hitpoints -= fighter.attack_power
+            if victim.hitpoints <= 0:
+                # kill! kill! kill!
+                del grid[victim_location]
+
+        if debug: 
+            print '%s round completed' % round
+            print_grid(grid)
+            raw_input('[continue]')
+
+    round += 1
+
+    print 'round %s:' % round
+    goblins = [x for x in grid.values() if type(x) is Goblin]
+    elves = [x for x in grid.values() if type(x) is Elf]
+    print 'Goblins: %s (%s hp) / Elves: %s (%s hp)' % (
+        len(goblins), 
+        sum(x.hitpoints for x in goblins),
+        len(elves),
+        sum(x.hitpoints for x in elves))
+
+    if winner: break
+
+print_grid(grid)
+print 'combat completed after %s full rounds.' % round
+total_hp = sum(x.hitpoints for x in grid.values() if type(x) is winner)
+print 'remaining hp: %s' % total_hp
+print 'outcome: %s' % (total_hp * round)
