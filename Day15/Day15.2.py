@@ -1,0 +1,1 @@
+# I just ran part 1 with different elf attack powers until I found it. :P

@@ -23,15 +23,17 @@ class Goblin(Fighter):
 
 def point_sorter((x,y)): return (y,x)
 
-def get_adjacent(grid, location, symbol):
+def get_adjacent(grid, location, match):
     adjacent = [(location[0] + d[0], location[1] + d[1]) for d in Direction.ALL]
-    return [x for x in adjacent if str(grid.get(x,None)) == str(symbol)]
+    return [x for x in adjacent if str(grid.get(x,None)) == str(match)]
 
 def find_path_to(grid, start, target, max_scan):
     # breadth-first search for target using a tree.
+    # quit if you hit max_scan without finding it.
     start_node = AnyNode(location=start)
     frontier = [start_node]
     visited = set()
+    queued = set()
 
     while any(frontier):
         node = frontier.pop(0)
@@ -39,9 +41,11 @@ def find_path_to(grid, start, target, max_scan):
         if node.location == target:
             return node
         adjacent = [x for x in get_adjacent(grid, node.location, None) if not x in visited]
-        # by putting the next frontier items in reading order, we'll choose the correct next path.
+        # by putting the next frontier items in reading order, we'll find the correct path
+        # for that case when there are 2+ paths to the target. (right?)
         adjacent.sort(key=point_sorter)
-        next_nodes = [AnyNode(location=x, parent=node) for x in adjacent]
+        next_nodes = [AnyNode(location=x, parent=node) for x in adjacent if x not in queued]
+        queued.update(adjacent)
         visited.add(node.location)
         frontier += next_nodes
     
