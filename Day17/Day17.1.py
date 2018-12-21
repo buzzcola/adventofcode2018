@@ -2,8 +2,7 @@ import re
 from Shared import *
 
 CLAY = '#'
-WATER_FLOWING = '|'
-WATER_REST = '~'
+WATER = '~'
 SPRING = '+'
 
 with open('input','r') as f: input = f.read()
@@ -19,13 +18,13 @@ for row in input.split('\n'):
         p = Point(**args)
         grid[p] = CLAY
 
+
 for row in get_rows_in_range(*get_outer_bounds(grid.keys())):
     print ''.join([grid.get(point, '.') for point in row])
 
-
 while True:
     # flow the water.
-    
+        
 
     # produce one new unit below the spring.
-    grid[spring_point + Direction.DOWN] = WATER_FLOWING
+    grid[spring_point.down()] = WATER

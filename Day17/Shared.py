@@ -5,7 +5,11 @@ PointBase = namedtuple('PointBase', 'x y')
 class Point(PointBase):
     def __add__(self, other):
         return Point(self.x + other[0], self.y + other[1])
-        
+    
+    def down(self): return self + Direction.DOWN
+    def up(self): return self + Direction.UP
+    def left(self): return self + Direction.LEFT
+    def right(self): return self + Direction.RIGHT
 
 class Direction:
     UP = (0,-1)
