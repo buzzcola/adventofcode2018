@@ -10,6 +10,7 @@ class Point(PointBase):
     def up(self): return self + Direction.UP
     def left(self): return self + Direction.LEFT
     def right(self): return self + Direction.RIGHT
+    def move(self, direction): return self + direction
 
 class Direction:
     UP = (0,-1)
